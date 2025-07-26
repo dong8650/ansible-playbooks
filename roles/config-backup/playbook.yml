@@ -1,0 +1,8 @@
+- name: 네트워크 장비 config 백업
+  hosts: all
+  gather_facts: no
+  vars:
+    backup_dir: "/etc/ansible/results/nw-backup{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+  roles:
+    - config-backup
+

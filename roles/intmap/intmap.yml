@@ -1,0 +1,9 @@
+real:
+  c8000v-dc1:
+    GigabitEthernet7: GigabitEthernet2
+    GigabitEthernet8: GigabitEthernet3
+
+  c8000v-dc2:
+    GigabitEthernet7: GigabitEthernet2
+    GigabitEthernet8: GigabitEthernet3
+

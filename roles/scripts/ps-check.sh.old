@@ -1,0 +1,39 @@
+#!/bin/bash
+  
+echo "📦 전체 시스템 포트-프로세스 매핑 진단 시작"
+
+# 포트, 프로토콜, PID, 프로세스 수집
+ss -tulnp 2>/dev/null | tail -n +2 | while read -r line; do
+  proto=$(echo $line | awk '{print $1}')
+  local_addr=$(echo $line | awk '{print $5}')
+  pidprog=$(echo $line | awk '{print $7}' | sed 's/\"//g')
+
+  # 포트 번호 추출
+  port=$(echo "$local_addr" | awk -F':' '{print $NF}')
+  pid=$(echo "$pidprog" | cut -d'/' -f1)
+  pname=$(echo "$pidprog" | cut -d'/' -f2)
+
+  # PID가 없으면 스킵
+  [[ -z "$port" || -z "$pid" || "$pid" == "-" ]] && continue
+
+  # 프로세스명이 비어 있으면 ps로 확인
+  if [[ -z "$pname" ]]; then
+    pname=$(ps -p $pid -o comm= 2>/dev/null)
+  fi
+
+  # 프로세스명이 비어도 마지막 시도
+  [[ -z "$pname" ]] && pname=$(cat /proc/$pid/comm 2>/dev/null)
+
+  # /etc/services 에서 공식 서비스명 추출 시도
+  svcname=$(getent services $port | awk '{print $1}' | head -n 1)
+
+  # 추정 서비스 = 프로세스명 + /etc/services 기반 혼합
+  guess="${pname:-unknown}"
+  [[ -n "$svcname" ]] && guess="$guess / $svcname"
+
+  echo "[$proto] 포트 $port → PID $pid → 프로세스명: $pname → 추정 서비스
+: $guess"
+done
+
+echo
+echo "✅ 전체 포트/프로세스 진단 완료"

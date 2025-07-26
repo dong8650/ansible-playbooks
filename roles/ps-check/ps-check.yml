@@ -1,0 +1,36 @@
+- name: 포트-프로세스 점검 플레이북
+  hosts: all
+  gather_facts: no
+  become: yes
+
+  vars:
+    ts_dir: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+
+    - name: 결과 디렉토리 생성
+      file:
+        path: "/etc/ansible/results/se-backup/{{ ts_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      become: no    # ✅ sudo 없이 실행
+      run_once: true
+
+    - name: ps-check.sh 복사
+      copy:
+        src: /etc/ansible/roles/scripts/ps-check.sh
+        dest: /tmp/ps-check.sh
+        mode: 0755
+
+    - name: ps-check.sh 실행
+      shell: bash /tmp/ps-check.sh > /tmp/ps-check-result.log
+      args:
+        executable: /bin/bash
+
+    - name: 결과 수집 (서버별 구분 저장)
+      fetch:
+        src: /tmp/ps-check-result.log
+        dest: "/etc/ansible/results/se-backup/{{ ts_dir }}/{{ inventory_hostname }}.log"
+        flat: yes
+

@@ -1,0 +1,37 @@
+- name: 백업 디렉토리 생성
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+
+- name: Cisco config 백업
+  ios_config:
+    backup: yes
+    backup_options:
+      filename: "{{ inventory_hostname }}_{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}.cfg"
+      dir_path: "{{ backup_dir }}"
+  when: inventory_hostname in groups['cisco']
+
+- name: Fortigate config 백업 (CLI 방식)
+  raw: |
+    config global
+    set more off
+    show full-configuration
+  register: forti_output
+  when: inventory_hostname in groups['fortigate']
+
+
+- name: Fortigate 백업 결과 디버깅 출력
+  debug:
+    var: forti_output.stdout
+  when: inventory_hostname in groups['fortigate']
+
+- name: Fortigate 백업 결과 저장
+  copy:
+    content: "{{ forti_output.stdout }}"
+    dest: "{{ backup_dir }}/{{ inventory_hostname }}.cfg"
+  delegate_to: localhost
+  when: inventory_hostname in groups['fortigate']
+

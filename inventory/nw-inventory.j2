@@ -1,0 +1,9 @@
+[cisco]
+c8000v-dc1 ansible_user=admin ansible_password={{ ansible_password_cisco }} ansible_network_os=ios ansible_connection=network_cli ansible_become=yes ansible_become_method=enable ansible_become_password={{ ansible_password_cisco }} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o PreferredAuthentications=password'
+
+c8000v-dc2 ansible_user=admin ansible_password={{ ansible_password_cisco }} ansible_network_os=ios ansible_connection=network_cli ansible_become=yes ansible_become_method=enable ansible_become_password={{ ansible_password_cisco }} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o PreferredAuthentications=password'
+
+[fortigate]
+tl-fw-dc1 ansible_user=mins ansible_password={{ ansible_password_forti }} ansible_connection=ssh ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+tl-fw-dc2 ansible_user=mins ansible_password={{ ansible_password_forti }} ansible_connection=ssh ansible_ssh_common_args='-o StrictHostKeyChecking=no'

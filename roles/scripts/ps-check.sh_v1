@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo "📦 전체 시스템 포트/프로세스 진단 시작"
+echo "HOSTNAME: $(hostname)"
+echo "IP: $(hostname -I | awk '{print $1}')"
+echo
+
+tmpfile=$(mktemp)
+
+# 포트/프로세스 목록 수집 (정상 동작 lsof)
+lsof -nP -i -FpPcn 2>/dev/null | awk '
+  /^p/ { pid=substr($0,2) }
+  /^P/ { port=substr($0,2) }
+  /^c/ { cmd=substr($0,2) }
+  /^n/ {
+    proto = ($0 ~ /TCP/) ? "tcp" : ($0 ~ /UDP/) ? "udp" : "-"
+    svc = port
+    print port "|" proto "|" pid "|" cmd "|" svc
+  }
+' >> "$tmpfile"
+
+# 출력
+printf "\e[1;33m%-8s %-6s %-8s %-22s %-20s\e[0m\n" "PORT" "PROTO" "PID" "PROCESS" "SERVICE"
+printf "%-8s %-6s %-8s %-22s %-20s\n" "--------" "------" "--------" "----------------------" "--------------------"
+sort "$tmpfile" | awk -F'|' '{printf "%-8s %-6s %-8s %-22s %-20s\n", $1, $2, $3, $4, $5}'
+
+echo -e "\n✅ 점검 완료"
