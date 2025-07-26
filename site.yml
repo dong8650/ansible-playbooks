@@ -1,0 +1,5 @@
+# site.yml
+- name: Run ps-check
+  hosts: all
+  roles:
+    - ps-check
